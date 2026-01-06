@@ -1,10 +1,10 @@
 
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, "Email is required"]
+        required: [true, "name is required"]
     },
     email: {
         type: String,
@@ -40,14 +40,13 @@ const userSchema = new mongoose.Schema({
 
 
 //pre-save hook to hash password before saving to database
-userSchema.pre("save", async function name(next) {
-    if(!this.isModified("password")) return next();
-    try{
-        const salt= await bcrypt.genSalt(10);
-        this.password=await bcrypt.hash(this.password,salt);
-        next();
-    }catch(error){
-        next(error)
+userSchema.pre("save", async function() {
+    if(!this.isModified("password")) return;
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+    } catch (error) {
+        throw error;
     }
 })
 
