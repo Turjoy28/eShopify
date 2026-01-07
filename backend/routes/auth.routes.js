@@ -8,5 +8,8 @@ router.post("/login",authController.login)
 
 router.post("/logout",authController.logout)
 
+router.post("/refresh-token",authController.refreshToken);
+
+router.get("/profile",protectRoute,getProfile);
 
 export default router;
