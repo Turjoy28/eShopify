@@ -10,6 +10,6 @@ router.post("/logout",authController.logout)
 
 router.post("/refresh-token",authController.refreshToken);
 
-router.get("/profile",protectRoute,getProfile);
+// router.get("/profile",protectRoute,getProfile);
 
 export default router;
