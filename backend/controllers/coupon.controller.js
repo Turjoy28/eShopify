@@ -1,4 +1,4 @@
-import { disconnect } from "mongoose";
+import mongoose from "mongoose";
 import Coupon from "../models/coupons.model.js";
 
 const getCoupon=async(req,res)=>{
@@ -27,7 +27,7 @@ const validateCoupon=async(req,res)=>{
         res.json({
             message:"Coupon is valid",
             code:coupon.code,
-            disconnectPercentage: coupon.discountPercentage
+            discountPercentage: coupon.discountPercentage
         })
     }catch(error){
         console.log("Error in validateCoupon controller",error.message)
