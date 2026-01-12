@@ -7,7 +7,7 @@ import productRoute from "./routes/product.routes.js"
 import cartRoutes from "./routes/cart.routes.js"
 import couponRoutes from "./routes/coupons.routes.js"
 import paymentRoutes from "./routes/payment.routes.js"
-
+import analyticsRoutes from "./routes/analytics.routes.js"
  dotenv.config();
 
 
@@ -28,7 +28,7 @@ app.use("/api/products", productRoute);
 app.use("/api/cart", cartRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/payment", paymentRoutes);
-
+app.use("/api/analytics",analyticsRoutes)
 
 const PORT= process.env.PORT||5000;
 app.listen(PORT,()=>{

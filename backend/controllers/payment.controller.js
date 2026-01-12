@@ -1,5 +1,6 @@
-import SSLCommerzPayment from 'sslcommerz-lts';
+import SSLCommerzPayment from "sslcommerz-lts"
 import Order from '../models/order.model.js';
+import Coupon from '../models/coupons.model.js';
 
 // Initialize SSLCommerz
 const store_id = process.env.SSLCOMMERZ_STORE_ID;
@@ -11,7 +12,7 @@ const is_live = process.env.SSLCOMMERZ_IS_LIVE === 'true';
 // ========================================
 export const createCheckoutSession = async (req, res) => {
     try {
-        const { products, customerInfo } = req.body;
+        const { products, customerInfo, couponCode } = req.body;
         const userId = req.user._id;
 
         // Validate required fields
@@ -40,6 +41,40 @@ export const createCheckoutSession = async (req, res) => {
             });
         }
 
+        // Apply coupon discount if provided
+        let discount = 0;
+        let finalAmount = totalAmount;
+        let appliedCoupon = null;
+
+        if (couponCode) {
+            const coupon = await Coupon.findOne({
+                code: couponCode,
+                userId: userId,
+                isActive: true
+            });
+
+            if (coupon) {
+                // Check if coupon is expired
+                if (coupon.expirationDate < new Date()) {
+                    coupon.isActive = false;
+                    await coupon.save();
+                    return res.status(400).json({ error: "Coupon has expired" });
+                }
+
+                // Calculate discount
+                discount = (totalAmount * coupon.discountPercentage) / 100;
+                finalAmount = totalAmount - discount;
+
+                appliedCoupon = {
+                    code: coupon.code,
+                    discountPercentage: coupon.discountPercentage,
+                    discountAmount: discount
+                };
+            } else {
+                return res.status(400).json({ error: "Invalid or inactive coupon code" });
+            }
+        }
+
         // Generate unique transaction ID
         const transactionId = `TXN-${Date.now()}-${userId}`;
 
@@ -47,7 +82,8 @@ export const createCheckoutSession = async (req, res) => {
         const order = new Order({
             user: userId,
             products: orderProducts,
-            totalAmount: totalAmount,
+            totalAmount: finalAmount,
+            originalAmount: totalAmount,
             sslCommerzTransactionId: transactionId,
             paymentStatus: 'pending',
             paymentGateway: 'sslcommerz',
@@ -55,6 +91,12 @@ export const createCheckoutSession = async (req, res) => {
             customerEmail: customerInfo.email,
             customerPhone: customerInfo.phone,
             customerAddress: customerInfo.address || '',
+            // Add coupon details if applied
+            ...(appliedCoupon && {
+                couponCode: appliedCoupon.code,
+                discountPercentage: appliedCoupon.discountPercentage,
+                discountAmount: appliedCoupon.discountAmount,
+            }),
         });
 
         await order.save();
@@ -65,7 +107,7 @@ export const createCheckoutSession = async (req, res) => {
 
         // SSLCommerz Payment Data
         const data = {
-            total_amount: totalAmount,
+            total_amount: finalAmount,
             currency: 'BDT',
             tran_id: transactionId,
             // Temporary URLs - Replace with ngrok URLs for real testing
@@ -114,6 +156,12 @@ export const createCheckoutSession = async (req, res) => {
                 message: "Payment session created",
                 gatewayUrl: apiResponse.GatewayPageURL,
                 orderId: order._id,
+                paymentDetails: {
+                    originalAmount: totalAmount,
+                    discountAmount: discount,
+                    finalAmount: finalAmount,
+                    ...(appliedCoupon && { coupon: appliedCoupon }),
+                },
             });
         } else {
             await Order.findByIdAndUpdate(order._id, { paymentStatus: 'failed' });
@@ -247,6 +295,10 @@ export const getOrderStatus = async (req, res) => {
             orderId: order._id,
             paymentStatus: order.paymentStatus,
             totalAmount: order.totalAmount,
+            originalAmount: order.originalAmount,
+            discountAmount: order.discountAmount,
+            couponCode: order.couponCode,
+            discountPercentage: order.discountPercentage,
             products: order.products,
             createdAt: order.createdAt,
         });

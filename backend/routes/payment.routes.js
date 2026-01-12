@@ -12,7 +12,7 @@ import authMiddleware from "../middleware/auth.middleware.js";
 const router = express.Router();
 
 // Create payment session (protected - user must be logged in)
-router.post("/create-checkout-session", authMiddleware.protectRoute, createCheckoutSession);
+router.post("/create-checkout-session",authMiddleware.protectRoute, createCheckoutSession);
 
 // SSLCommerz callback URLs (NOT protected - SSLCommerz calls these)
 router.post("/success", paymentSuccess);

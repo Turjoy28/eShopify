@@ -65,6 +65,23 @@ const orderSchema = new mongoose.Schema(
 		customerAddress: {
 			type: String,
 		},
+		// Coupon Details
+		couponCode: {
+			type: String,
+		},
+		discountPercentage: {
+			type: Number,
+			min: 0,
+			max: 100,
+		},
+		discountAmount: {
+			type: Number,
+			min: 0,
+		},
+		originalAmount: {
+			type: Number,
+			min: 0,
+		},
 	},
 	{ timestamps: true }
 );
