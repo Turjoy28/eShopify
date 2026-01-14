@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import express from "express";
+import cors from "cors";
 import {connectDB} from "./lib/db.js"
 import authRoutes from "./routes/auth.routes.js"
 import cookieParser from 'cookie-parser';
@@ -12,6 +13,11 @@ import analyticsRoutes from "./routes/analytics.routes.js"
 
 
 const app=express();
+
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true
+}));
 
 
 

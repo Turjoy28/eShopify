@@ -1,17 +1,27 @@
-import { ShoppingCart, UserPlus, LogIn, LogOut, Lock } from "lucide-react";
+import { ShoppingCart, UserPlus, LogIn, LogOut, Lock, ShoppingBag, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 
 const Navbar = () => {
     const user = false;
-    const isAdmin = false;
+    const isAdmin = true;
     return (
         <header className='fixed top-0 left-0 w-full bg-gray-900/90 backdrop-blur-sm shadow-sm z-40 border-b border-blue-500/15'>
             <div className='container mx-auto px-4 py-1.5'>
                 <div className='flex justify-between items-center'>
-                    <Link to='/' className='text-sm font-semibold flex items-center gap-1'>
-                        <Lock className='text-blue-400' size={16} />
-                        <span className='bg-gradient-to-r from-blue-500 via-blue-400 to-indigo-500 text-transparent bg-clip-text'>
+                    <Link to='/' className='text-sm font-semibold flex items-center gap-1 group'>
+                        <div className='relative'>
+                            <ShoppingBag
+                                className='text-blue-400 group-hover:text-blue-300 transition-all duration-300 group-hover:scale-110'
+                                size={16}
+                                strokeWidth={2.5}
+                            />
+                            <Sparkles
+                                className='text-cyan-400 absolute -top-0.5 -right-0.5 group-hover:text-cyan-300 animate-pulse'
+                                size={7}
+                            />
+                        </div>
+                        <span className='bg-gradient-to-r from-blue-500 via-blue-400 to-indigo-500 text-transparent bg-clip-text group-hover:from-blue-400 group-hover:via-cyan-400 group-hover:to-indigo-400 transition-all duration-300'>
                             E-ShopCart
                         </span>
                     </Link>
