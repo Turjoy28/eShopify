@@ -1,5 +1,6 @@
 import Product from "../models/product.model.js"
 import cloudinary from "../lib/cloudinary.js"
+import {redis} from "../lib/redis.js"
 const getAllProducts = async (req, res) => {
     try {
         const products = await Product.find({})
@@ -32,20 +33,21 @@ const getFeaturedProducts = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-        const { name, description, price, image, catagory } = req.body;
+        const { name, description, price, image, category } = req.body;
         let cloudinaryResponse = null;
         if (image) {
             cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" })
         }
-        const product = await product.create({
+        const product = await Product.create({
             name,
             description,
             price,
-            image: cloudinary?.secure_url ? cloudinaryResponse.secure_url : "",
-            catagory,
+            image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
+            category,
         })
         res.status(201).json(product);
     } catch (error) {
+        console.error("Error in createProduct:", error.message);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
@@ -95,12 +97,12 @@ const getRecommendations = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message })
     }
 }
-const getProductsCatagory = async (req, res) => {
-    const { catagory } = req.params;
+const getProductsByCategory = async (req, res) => {
+    const { category } = req.params;
     try {
 
-        const products = await Product.find({ catagory });
-        res.json(products);
+        const products = await Product.find({ category: { $regex: new RegExp(`^${category}$`, 'i') } });
+        res.json({products});
 
     } catch (error) {
         console.log("Error in getProductCatagory controller", error.message);
@@ -145,6 +147,6 @@ export default {
     createProduct,
     deleteProduct,
     getRecommendations,
-    getProductsCatagory,
+    getProductsByCategory,
     toggleFeaturedProduct
 }

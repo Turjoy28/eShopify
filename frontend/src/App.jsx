@@ -4,8 +4,31 @@ import LoginPage from "./pages/LoginPage.jsx"
 import SignupPage from "./pages/SignupPage.jsx"
 import Navbar from "./components/Navbar.jsx"
 import { Toaster } from "react-hot-toast"
+import { useUserStore } from "./stores/useUserStore.js"
+import { useCartStore } from "./stores/useCartStore.js"
+import { useEffect } from "react"
+import LoadingSpinner from "./components/LoadingSpinner.jsx"
+import AdminPage from "./pages/AdminPage.jsx"
+import CategoryPage from "./pages/CategoryPage.jsx"
+import CartPage from "./pages/CartPage.jsx"
+import CheckoutPage from "./pages/CheckoutPage.jsx"
+import PaymentSuccessPage from "./pages/PaymentSuccessPage.jsx"
+import PaymentFailedPage from "./pages/PaymentFailedPage.jsx"
+import PaymentCancelledPage from "./pages/PaymentCancelledPage.jsx"
+
 
 function App() {
+  const {user,checkAuth,checkingAuth}=useUserStore();
+  const {getCartItems}=useCartStore();
+
+  useEffect(()=>{
+    checkAuth();
+  },[checkAuth])
+
+  useEffect(()=>{
+    if(user) getCartItems();
+  },[user, getCartItems])
+  if(checkingAuth) return <LoadingSpinner/>
 
   return (
     <>
@@ -22,8 +45,15 @@ function App() {
     <Navbar/>
       <Routes>
         <Route path='/' element ={<HomePage/>}/>
-        <Route path='/signup' element ={<SignupPage/>}/>
-        <Route path='/login' element ={<LoginPage/>}/>
+        <Route path='/signup' element ={user?<HomePage/>:<SignupPage/>}/>
+        <Route path='/login' element ={user?<HomePage/>:<LoginPage/>}/>
+        <Route path='/secret-dashboard' element ={user?.role==="admin"?<AdminPage/>:<HomePage/>}/>
+        <Route path='/category/:category' element={<CategoryPage/>}/>
+        <Route path='/cart' element={user?<CartPage/>:<LoginPage/>}/>
+        <Route path='/checkout' element={user?<CheckoutPage/>:<LoginPage/>}/>
+        <Route path='/payment/success' element={<PaymentSuccessPage/>}/>
+        <Route path='/payment/failed' element={<PaymentFailedPage/>}/>
+        <Route path='/payment/cancelled' element={<PaymentCancelledPage/>}/>
       </Routes>
 
     </div>

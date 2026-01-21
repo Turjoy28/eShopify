@@ -1,4 +1,11 @@
 import dotenv from 'dotenv'
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
 import express from "express";
 import cors from "cors";
 import {connectDB} from "./lib/db.js"
@@ -9,7 +16,6 @@ import cartRoutes from "./routes/cart.routes.js"
 import couponRoutes from "./routes/coupons.routes.js"
 import paymentRoutes from "./routes/payment.routes.js"
 import analyticsRoutes from "./routes/analytics.routes.js"
- dotenv.config();
 
 
 const app=express();
@@ -27,7 +33,7 @@ app.use(cors({
 
 
 
-app.use(express.json());
+app.use(express.json({limit:"50mb"}));
 app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoute);

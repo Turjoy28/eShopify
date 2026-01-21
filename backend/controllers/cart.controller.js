@@ -5,13 +5,12 @@ const addToCart= async(req,res)=>{
         const {productId}=req.body;
         const user=req.user;
 
-        const existingItem=user.cartItems.find(item=>
-            item.id === productId
-        )
+        const existingItem = user.cartItems.find(item => item.product?.toString() === productId);
+
         if(existingItem){
-            existingItem.quantity+=1;
+            existingItem.quantity += 1;
         }else{
-            user.cartItems.push(productId);
+            user.cartItems.push({ product: productId, quantity: 1 });
         }
         await user.save();
         res.json(user.cartItems);
@@ -29,7 +28,7 @@ const removeAllCart= async(req,res)=>{
         if(!productId){
             user.cartItems=[]
         }else{
-            user.cartItems=user.cartItems.filter((items)=>items.id!==productId);
+            user.cartItems=user.cartItems.filter((item)=>item.product.toString()!==productId);
         }
         await user.save();
         res.json(user.cartItems);
@@ -40,12 +39,13 @@ const removeAllCart= async(req,res)=>{
 
 const getCartProducts= async(req,res)=>{
     try{
-        const product=await Product.find({_id:{$in:req.user.cartItems}});
+        const productIds = req.user.cartItems.map(item => item.product).filter(Boolean);
+        const products = await Product.find({_id:{$in: productIds}});
 
         //add quantity for each product
-        const cartItems=product.map(product=>{
-          const item= req.user.cartItems.find(cartItems=>cartItems.id===product.id); 
-          return {...product.toJSON(),quantity:item.quantity} 
+        const cartItems = products.map(product => {
+          const item = req.user.cartItems.find(cartItem => cartItem.product?.toString() === product._id.toString());
+          return {...product.toJSON(), quantity: item?.quantity || 1}
         })
         res.json(cartItems);
     }catch(error){
@@ -55,17 +55,18 @@ const getCartProducts= async(req,res)=>{
 
 const updateQuantity =async(req,res)=>{
     try{
-        const{id:productId}=req.id;
-        const {quantity}=req.body;
-        const user=req.user;
-        const existingItem=user.cartItems.find((item)=>item.id!==productId)
+        const {id:productId} = req.params;
+        const {quantity} = req.body;
+        const user = req.user;
+        const existingItem = user.cartItems.find((item) => item.product.toString() === productId);
+
         if(existingItem){
-             if(quantity===0){
-                user.cartItems=user.cartItems.filter((item)=>item.id!==productId);
+             if(quantity === 0){
+                user.cartItems = user.cartItems.filter((item) => item.product.toString() !== productId);
                 await user.save();
                 return res.json(user.cartItems);
             }
-            existingItem.quantity=quantity;
+            existingItem.quantity = quantity;
             await user.save();
             res.json(user.cartItems);
         }else{
