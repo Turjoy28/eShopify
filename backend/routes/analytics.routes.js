@@ -3,7 +3,7 @@ import authMiddleware from "../middleware/auth.middleware.js";
 import analyticsController from "../controllers/analytics.controller.js";
 const router= express.Router();
 
-router.get("/",authMiddleware.adminRoute,authMiddleware.protectRoute,async(req,res)=>{
+router.get("/",authMiddleware.protectRoute,authMiddleware.adminRoute,async(req,res)=>{
     
     try{
         const analyticsData=await analyticsController.getAnalyticsData();
