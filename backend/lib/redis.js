@@ -16,7 +16,7 @@ export const redis = new Redis(process.env.UPSTASH_REDIS_URL, {
 });
 
 redis.on('error', (err) => {
-  console.error('Redis error (non-critical):', err.message);
+  console.error('Redis error (non-critical):', err ? (err.stack || err) : 'unknown error');
 });
 
 redis.on('connect', () => {

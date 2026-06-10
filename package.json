@@ -1,17 +1,23 @@
-{
-  "name": "eshop",
-  "version": "1.0.0",
-  "description": "Full-stack e-commerce application",
-  "main": "backend/server.js",
-  "type": "module",
-  "scripts": {
-    "start:backend": "cd backend && npm start",
-    "start:frontend": "cd frontend && npm run dev",
-    "dev": "npm run start:backend && npm run start:frontend",
-    "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ..",
-    "build": "cd backend && npm install && cd ../frontend && npm install && npm run build && cd .."
-  },
-  "keywords": ["ecommerce", "fullstack"],
-  "author": "",
-  "license": "ISC"
+﻿{
+    "name":  "eshop",
+    "version":  "1.0.0",
+    "description":  "Full-stack e-commerce application",
+    "main":  "backend/server.js",
+    "type":  "module",
+    "scripts":  {
+                    "start:backend":  "cd backend \u0026\u0026 npm run dev",
+                    "start:frontend":  "cd frontend \u0026\u0026 npm run dev",
+                    "dev":  "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+                    "install:all":  "cd backend \u0026\u0026 npm install \u0026\u0026 cd ../frontend \u0026\u0026 npm install \u0026\u0026 cd ..",
+                    "build":  "cd backend \u0026\u0026 npm install \u0026\u0026 cd ../frontend \u0026\u0026 npm install \u0026\u0026 npm run build \u0026\u0026 cd .."
+                },
+    "keywords":  [
+                     "ecommerce",
+                     "fullstack"
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "devDependencies":  {
+                            "concurrently":  "^10.0.3"
+                        }
 }
