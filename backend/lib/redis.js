@@ -1,25 +1,18 @@
 import Redis from "ioredis"
+import dotenv from "dotenv"
+import path from "path"
+import { fileURLToPath } from "url"
 
-export const redis = new Redis(process.env.UPSTASH_REDIS_URL, {
-  tls: {
-    rejectUnauthorized: false
-  },
-  retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 5,
-  enableReadyCheck: false,
-  enableOfflineQueue: false,
-  lazyConnect: true,
-  retryStrategy: (times) => {
-    const delay = Math.min(times * 50, 2000);
-    return delay;
-  }
-});
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+
+export const redis = new Redis(process.env.UPSTASH_REDIS_URL);
 
 redis.on('error', (err) => {
-  console.error('Redis error (non-critical):', err ? (err.stack || err) : 'unknown error');
+  console.error('Redis error (non-critical):', err.message);
 });
 
 redis.on('connect', () => {
   console.log('✅ Redis connected successfully');
 });
-
