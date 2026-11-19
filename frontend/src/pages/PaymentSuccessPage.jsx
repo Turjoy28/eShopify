@@ -85,7 +85,7 @@ const PaymentSuccessPage = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
                     >
-                        Payment Successful!
+                        {order?.paymentGateway === "cod" ? "Order Confirmed!" : "Payment Successful!"}
                     </motion.h1>
 
                     <motion.p
@@ -94,7 +94,9 @@ const PaymentSuccessPage = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}
                     >
-                        Thank you for your purchase. Your order has been confirmed.
+                        {order?.paymentGateway === "cod"
+                            ? "Thank you for your order! Your items will be prepared for delivery."
+                            : "Thank you for your purchase. Your payment has been received."}
                     </motion.p>
 
                     {/* Order Details */}
@@ -117,9 +119,25 @@ const PaymentSuccessPage = () => {
                                 </div>
 
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-400">Status</span>
-                                    <span className="text-emerald-400 font-semibold capitalize">
-                                        {order.paymentStatus}
+                                    <span className="text-gray-400">Payment Method</span>
+                                    <span className="text-white font-semibold">
+                                        {order.paymentGateway === "cod" ? "Cash on Delivery" : "Online Payment (SSLCommerz)"}
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-400">Payment Status</span>
+                                    <span className={`font-semibold capitalize ${
+                                        order.paymentStatus === "paid" ? "text-emerald-400" : "text-amber-400"
+                                    }`}>
+                                        {order.paymentStatus === "paid" ? "Paid" : "Pay on Delivery (Pending)"}
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-400">Order Status</span>
+                                    <span className="text-blue-400 font-semibold capitalize">
+                                        {order.orderStatus || "Processing"}
                                     </span>
                                 </div>
 
@@ -144,7 +162,9 @@ const PaymentSuccessPage = () => {
 
                                 <div className="border-t border-gray-600 pt-3">
                                     <div className="flex justify-between">
-                                        <span className="text-white font-semibold">Total Paid</span>
+                                        <span className="text-white font-semibold">
+                                            {order.paymentGateway === "cod" ? "Amount to Pay" : "Total Paid"}
+                                        </span>
                                         <span className="text-emerald-400 font-bold text-lg">
                                             ৳{order.totalAmount?.toFixed(2)}
                                         </span>

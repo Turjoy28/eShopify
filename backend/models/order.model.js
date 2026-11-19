@@ -50,9 +50,15 @@ const orderSchema = new mongoose.Schema(
 		paymentGateway: {
 			type: String,
 			enum: ['stripe', 'sslcommerz', 'cod'],
-			default: 'sslcommerz',
+			default: 'cod',
 		},
-		// Customer Details (required by SSLCommerz)
+		// Delivery / Order Processing Status
+		orderStatus: {
+			type: String,
+			enum: ['processing', 'shipped', 'delivered', 'cancelled'],
+			default: 'processing',
+		},
+		// Customer Details (required by SSLCommerz and COD)
 		customerName: {
 			type: String,
 		},
@@ -63,6 +69,9 @@ const orderSchema = new mongoose.Schema(
 			type: String,
 		},
 		customerAddress: {
+			type: String,
+		},
+		customerCity: {
 			type: String,
 		},
 		// Coupon Details

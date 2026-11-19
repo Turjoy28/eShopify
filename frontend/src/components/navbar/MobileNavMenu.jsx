@@ -1,11 +1,11 @@
-import { ShoppingCart, UserPlus, LogIn, LogOut, Lock, Home } from "lucide-react";
+import { ShoppingCart, UserPlus, LogIn, LogOut, Lock, Home, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserStore } from "../../stores/useUserStore";
 import { useCartStore } from "../../stores/useCartStore";
 
 const MobileNavMenu = ({ isOpen, closeMenu }) => {
-    const { user, Logout } = useUserStore();
+    const { user, logout } = useUserStore();
     const isAdmin = user?.role === "admin";
     const { cart } = useCartStore();
     const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -36,6 +36,24 @@ const MobileNavMenu = ({ isOpen, closeMenu }) => {
                                 Home
                             </Link>
                         </motion.div>
+
+                        {/* Orders Link (when logged in) */}
+                        {user && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.12 }}
+                            >
+                                <Link
+                                    to={"/orders"}
+                                    onClick={closeMenu}
+                                    className='flex items-center gap-3 text-gray-300 hover:text-cyan-400 font-semibold py-3 px-4 rounded-xl hover:bg-gray-800/50 transition-all duration-300'
+                                >
+                                    <Package size={20} />
+                                    My Orders
+                                </Link>
+                            </motion.div>
+                        )}
 
                         {/* Cart Link (when logged in) */}
                         {user && (
@@ -88,7 +106,7 @@ const MobileNavMenu = ({ isOpen, closeMenu }) => {
                             >
                                 <button
                                     onClick={() => {
-                                        Logout();
+                                        logout();
                                         closeMenu();
                                     }}
                                     className='flex items-center gap-3 w-full text-gray-300 hover:text-white font-semibold py-3 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-all duration-300'

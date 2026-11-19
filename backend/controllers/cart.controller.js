@@ -1,41 +1,42 @@
 import Product from "../models/product.model.js";
+import User from "../models/user.model.js";
 
-const addToCart= async(req,res)=>{
-    try{
-        const {productId}=req.body;
-        const user=req.user;
+const addToCart = async (req, res) => {
+    try {
+        const { productId } = req.body;
+        const user = req.user;
 
         const existingItem = user.cartItems.find(item => item.product?.toString() === productId);
 
-        if(existingItem){
+        if (existingItem) {
             existingItem.quantity += 1;
-        }else{
+        } else {
             user.cartItems.push({ product: productId, quantity: 1 });
         }
-        await user.save();
+        await User.findByIdAndUpdate(user._id, { cartItems: user.cartItems });
         res.json(user.cartItems);
-    }catch(error){
-        console.log("Error in addToCart controller",error.message);
-        res.status(500).json({message:"Server error",error:error.message});
+    } catch (error) {
+        console.log("Error in addToCart controller", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
-}
+};
 
-
-const removeAllCart= async(req,res)=>{
-    try{
-        const{productId}=req.body;
-        const user=req.user;
-        if(!productId){
-            user.cartItems=[]
-        }else{
-            user.cartItems=user.cartItems.filter((item)=>item.product.toString()!==productId);
+const removeAllCart = async (req, res) => {
+    try {
+        const { productId } = req.body || {};
+        const user = req.user;
+        if (!productId) {
+            user.cartItems = [];
+        } else {
+            user.cartItems = user.cartItems.filter((item) => item.product?.toString() !== productId);
         }
-        await user.save();
+        await User.findByIdAndUpdate(user._id, { cartItems: user.cartItems });
         res.json(user.cartItems);
-    }catch(error){
-        res.status(500).json({message:"Server error",error:error.message});
+    } catch (error) {
+        console.log("Error in removeAllCart controller", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
-}
+};
 
 const getCartProducts= async(req,res)=>{
     try{
@@ -53,29 +54,29 @@ const getCartProducts= async(req,res)=>{
     }
 }
 
-const updateQuantity =async(req,res)=>{
-    try{
-        const {id:productId} = req.params;
-        const {quantity} = req.body;
+const updateQuantity = async (req, res) => {
+    try {
+        const { id: productId } = req.params;
+        const { quantity } = req.body;
         const user = req.user;
-        const existingItem = user.cartItems.find((item) => item.product.toString() === productId);
+        const existingItem = user.cartItems.find((item) => item.product?.toString() === productId);
 
-        if(existingItem){
-             if(quantity === 0){
-                user.cartItems = user.cartItems.filter((item) => item.product.toString() !== productId);
-                await user.save();
-                return res.json(user.cartItems);
+        if (existingItem) {
+            if (quantity === 0) {
+                user.cartItems = user.cartItems.filter((item) => item.product?.toString() !== productId);
+            } else {
+                existingItem.quantity = quantity;
             }
-            existingItem.quantity = quantity;
-            await user.save();
-            res.json(user.cartItems);
-        }else{
-            res.status(404).json({message:"Product not found"})
+            await User.findByIdAndUpdate(user._id, { cartItems: user.cartItems });
+            return res.json(user.cartItems);
+        } else {
+            res.status(404).json({ message: "Product not found" });
         }
-    }catch(error){
-        res.status(500).json({message:"Server error",error:error.message});
+    } catch (error) {
+        console.log("Error in updateQuantity controller", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
-}
+};
 
 export default {
     addToCart,

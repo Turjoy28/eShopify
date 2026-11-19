@@ -1,11 +1,11 @@
-import { ShoppingCart, UserPlus, LogIn, LogOut, Lock } from "lucide-react";
+import { ShoppingCart, UserPlus, LogIn, LogOut, Lock, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useUserStore } from "../../stores/useUserStore";
 import { useCartStore } from "../../stores/useCartStore";
 
 const DesktopNav = () => {
-    const { user, Logout } = useUserStore();
+    const { user, logout } = useUserStore();
     const isAdmin = user?.role === "admin";
     const { cart } = useCartStore();
     const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -19,6 +19,18 @@ const DesktopNav = () => {
                 Home
                 <span className='absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 group-hover:w-full transition-all duration-300 rounded-full'></span>
             </Link>
+
+            {user && (
+                <Link
+                    to={"/orders"}
+                    className='relative group flex items-center gap-2 text-base font-semibold text-gray-300 hover:text-cyan-400 transition-all duration-300'
+                >
+                    <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
+                        <Package size={22} />
+                    </motion.div>
+                    <span>Orders</span>
+                </Link>
+            )}
 
             {user && (
                 <Link
@@ -57,7 +69,7 @@ const DesktopNav = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className='bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-base font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-300 border border-gray-700 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20'
-                    onClick={Logout}
+                    onClick={logout}
                 >
                     <LogOut size={18} />
                     <span>Logout</span>

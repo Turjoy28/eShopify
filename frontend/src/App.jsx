@@ -15,6 +15,7 @@ import CheckoutPage from "./pages/CheckoutPage.jsx"
 import PaymentSuccessPage from "./pages/PaymentSuccessPage.jsx"
 import PaymentFailedPage from "./pages/PaymentFailedPage.jsx"
 import PaymentCancelledPage from "./pages/PaymentCancelledPage.jsx"
+import OrdersPage from "./pages/OrdersPage.jsx"
 
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
         <Route path='/category/:category' element={<CategoryPage/>}/>
         <Route path='/cart' element={user?<CartPage/>:<LoginPage/>}/>
         <Route path='/checkout' element={user?<CheckoutPage/>:<LoginPage/>}/>
+        <Route path='/orders' element={user ? <OrdersPage /> : <LoginPage />} />
         <Route path='/payment/success' element={<PaymentSuccessPage/>}/>
         <Route path='/payment/failed' element={<PaymentFailedPage/>}/>
         <Route path='/payment/cancelled' element={<PaymentCancelledPage/>}/>

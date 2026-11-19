@@ -1,4 +1,4 @@
-import { set } from "mongoose";
+
 import { redis } from "../lib/redis.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
@@ -140,9 +140,7 @@ const refreshToken = async (req, res) => {
         
         const accessToken = jwt.sign({ userId: decode.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
         res.cookie("accessToken", accessToken, {
-            httpOnly: true, //prevent XSS attacks
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict", //prevents CSRF attack cross-site request forgery attack
+            ...cookieOptions,
             maxAge: 15 * 60 * 1000,
         })
         res.json({message:"Token refreshed successfully"})

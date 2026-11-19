@@ -4,13 +4,15 @@ import { useCartStore } from "../stores/useCartStore";
 import { useUserStore } from "../stores/useUserStore";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
-import { CreditCard, Truck, ShieldCheck, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { CreditCard, Truck, ShieldCheck, ArrowLeft, Banknote, CheckCircle2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const CheckoutPage = () => {
     const { cart, total, subtotal, coupon, clearCart } = useCartStore();
     const { user } = useUserStore();
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState("cod"); // 'cod' or 'sslcommerz'
 
     const [customerInfo, setCustomerInfo] = useState({
         name: user?.name || "",
@@ -30,12 +32,17 @@ const CheckoutPage = () => {
     const handleCheckout = async () => {
         // Validate required fields
         if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
-            toast.error("Please fill in all required fields");
+            toast.error("Please fill in all required fields (Name, Email, Phone)");
             return;
         }
 
         if (!customerInfo.phone.match(/^01[3-9]\d{8}$/)) {
-            toast.error("Please enter a valid Bangladesh phone number");
+            toast.error("Please enter a valid Bangladesh phone number (e.g. 017XXXXXXXX)");
+            return;
+        }
+
+        if (!customerInfo.address.trim()) {
+            toast.error("Please provide your delivery address");
             return;
         }
 
@@ -49,7 +56,25 @@ const CheckoutPage = () => {
                 quantity: item.quantity,
             }));
 
-            // Create checkout session
+            // 1. CASH ON DELIVERY
+            if (paymentMethod === "cod") {
+                const response = await axios.post("/payment/create-cod-order", {
+                    products,
+                    customerInfo,
+                    couponCode: coupon?.code || null,
+                });
+
+                if (response.data.success) {
+                    await clearCart();
+                    toast.success("Order placed successfully with Cash on Delivery!");
+                    navigate(`/payment/success?orderId=${response.data.orderId}`);
+                } else {
+                    toast.error("Failed to place Cash on Delivery order");
+                }
+                return;
+            }
+
+            // 2. SSLCOMMERZ ONLINE PAYMENT
             const response = await axios.post("/payment/create-checkout-session", {
                 products,
                 customerInfo,
@@ -60,7 +85,7 @@ const CheckoutPage = () => {
                 // Redirect to SSLCommerz payment gateway
                 window.location.href = response.data.gatewayUrl;
             } else {
-                toast.error("Failed to initiate payment");
+                toast.error("Failed to initiate online payment");
             }
         } catch (error) {
             console.error("Checkout error:", error);
@@ -211,28 +236,106 @@ const CheckoutPage = () => {
                             </div>
                         </div>
 
-                        {/* Payment Methods Info */}
+                        {/* Payment Method Selection */}
                         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                             <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                                <CreditCard className="text-emerald-400" size={24} />
-                                Payment Methods
+                                <Banknote className="text-emerald-400" size={24} />
+                                Select Payment Method
                             </h2>
-                            <p className="text-gray-400 text-sm mb-4">
-                                You will be redirected to SSLCommerz secure payment gateway
-                            </p>
-                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                {["bKash", "Nagad", "Rocket", "VISA", "MasterCard"].map((method) => (
-                                    <div
-                                        key={method}
-                                        className="bg-gray-700 rounded-lg p-2 text-center text-xs text-gray-300 border border-gray-600"
-                                    >
-                                        {method}
+
+                            <div className="space-y-3">
+                                {/* Option 1: Cash on Delivery */}
+                                <div
+                                    onClick={() => setPaymentMethod("cod")}
+                                    className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                                        paymentMethod === "cod"
+                                            ? "border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/30"
+                                            : "border-gray-700 bg-gray-700/40 hover:bg-gray-700/70"
+                                    }`}
+                                >
+                                    <div className="mt-0.5">
+                                        <div
+                                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                                paymentMethod === "cod"
+                                                    ? "border-emerald-500 bg-emerald-500"
+                                                    : "border-gray-500"
+                                            }`}
+                                        >
+                                            {paymentMethod === "cod" && (
+                                                <div className="w-2 h-2 rounded-full bg-white" />
+                                            )}
+                                        </div>
                                     </div>
-                                ))}
+
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Truck size={18} className="text-emerald-400" />
+                                                <span className="font-semibold text-white text-base">
+                                                    Cash on Delivery (COD)
+                                                </span>
+                                            </div>
+                                            <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">
+                                                Pay at Doorstep
+                                            </span>
+                                        </div>
+                                        <p className="text-gray-400 text-xs mt-1">
+                                            Pay in cash upon receiving your order. No advance payment required.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Option 2: SSLCommerz Online Payment */}
+                                <div
+                                    onClick={() => setPaymentMethod("sslcommerz")}
+                                    className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                                        paymentMethod === "sslcommerz"
+                                            ? "border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/30"
+                                            : "border-gray-700 bg-gray-700/40 hover:bg-gray-700/70"
+                                    }`}
+                                >
+                                    <div className="mt-0.5">
+                                        <div
+                                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                                paymentMethod === "sslcommerz"
+                                                    ? "border-emerald-500 bg-emerald-500"
+                                                    : "border-gray-500"
+                                            }`}
+                                        >
+                                            {paymentMethod === "sslcommerz" && (
+                                                <div className="w-2 h-2 rounded-full bg-white" />
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <CreditCard size={18} className="text-blue-400" />
+                                                <span className="font-semibold text-white text-base">
+                                                    Online Payment
+                                                </span>
+                                            </div>
+                                            <span className="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">
+                                                SSLCommerz
+                                            </span>
+                                        </div>
+                                        <p className="text-gray-400 text-xs mt-1 mb-2">
+                                            Pay instantly using bKash, Nagad, Rocket, or Debit/Credit Cards.
+                                        </p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {["bKash", "Nagad", "Rocket", "VISA", "MasterCard"].map((method) => (
+                                                <span
+                                                    key={method}
+                                                    className="bg-gray-800 text-gray-300 border border-gray-600 text-[10px] px-2 py-0.5 rounded font-mono"
+                                                >
+                                                    {method}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <p className="text-gray-500 text-xs mt-3">
-                                + Bank Transfer, Mobile Banking & More
-                            </p>
                         </div>
                     </motion.div>
 
@@ -299,18 +402,23 @@ const CheckoutPage = () => {
                                 </div>
                             </div>
 
-                            {/* Checkout Button */}
+                            {/* Checkout / Place Order Button */}
                             <motion.button
                                 onClick={handleCheckout}
                                 disabled={isLoading}
-                                className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30"
                                 whileHover={{ scale: isLoading ? 1 : 1.02 }}
                                 whileTap={{ scale: isLoading ? 1 : 0.98 }}
                             >
                                 {isLoading ? (
                                     <>
                                         <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                                        Processing...
+                                        Processing Order...
+                                    </>
+                                ) : paymentMethod === "cod" ? (
+                                    <>
+                                        <Truck size={20} />
+                                        Place Order (Cash on Delivery)
                                     </>
                                 ) : (
                                     <>
@@ -320,10 +428,19 @@ const CheckoutPage = () => {
                                 )}
                             </motion.button>
 
-                            {/* Security Note */}
+                            {/* Security / Info Note */}
                             <div className="mt-4 flex items-center justify-center gap-2 text-gray-500 text-xs">
-                                <ShieldCheck size={14} />
-                                <span>Secured by SSLCommerz</span>
+                                {paymentMethod === "cod" ? (
+                                    <>
+                                        <Truck size={14} />
+                                        <span>Pay with cash when delivered to your address</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ShieldCheck size={14} />
+                                        <span>Secured 128-bit SSL by SSLCommerz</span>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </motion.div>
